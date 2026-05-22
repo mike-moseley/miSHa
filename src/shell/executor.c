@@ -10,10 +10,13 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+int jobid;
+
 int execute(command_t *cmd) {
 	pid_t pid;
 	int status;
 	status = 0;
+	jobid = 1;
 
 	if(cmd == NULL) return -1;
 
@@ -72,6 +75,8 @@ int execute(command_t *cmd) {
 				do {
 					result = waitpid(pid, &status, 0);
 				} while(result == -1 && errno == EINTR);
+			} else {
+				printf("[%d] %d\n", jobid, pid);
 			}
 			enableRawMode();
 			return status;
