@@ -3,8 +3,8 @@
 
 #include "shell/consts.h"
 #include "vendor/data-structures/cds_types.h"
-#include "vendor/data-structures/slice.h"
 #include <fcntl.h>
+
 typedef enum { JOB_DONE = 0, JOB_RUNNING = 1, JOB_STOPPED = 2 } job_status;
 
 typedef struct job {
