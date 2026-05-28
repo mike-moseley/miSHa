@@ -1,11 +1,13 @@
 #include "shell/executor.h"
 #include "shell/input.h"
+#include "shell/jobs.h"
 #include "shell/parser.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -16,7 +18,6 @@ int execute(command_t *cmd) {
 	pid_t pid;
 	int status;
 	status = 0;
-	jobid = 1;
 
 	if(cmd == NULL) return -1;
 
@@ -76,7 +77,14 @@ int execute(command_t *cmd) {
 					result = waitpid(pid, &status, 0);
 				} while(result == -1 && errno == EINTR);
 			} else {
-				printf("[%d] %d\n", jobid, pid);
+				job_t job;
+				job.pid = pid;
+				job.status = JOB_RUNNING;
+				strcpy(job.cmd_name, cmd->argv[0]);
+
+				addJob(&job);
+
+				printf("[%d] %d\n", job.jobid, pid);
 			}
 			enableRawMode();
 			return status;
