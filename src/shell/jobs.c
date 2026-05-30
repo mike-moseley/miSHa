@@ -5,7 +5,7 @@
 
 static slice_t *jobs;
 
-int job_counter;
+static int job_counter;
 
 cds_err_t initJobs(void) {
 	jobs = createSlice(sizeof(job_t), 0);
@@ -90,7 +90,7 @@ void printJobs(void) {
 		}
 
 		printf("Job: %s\n", job->cmd_name);
-		printf("  Job ID: %d PID: %d Status: %s\n\n", job->jobid, job->pid,
+		printf("  Job ID: %d PID: %d Status: %s\n", job->jobid, job->pid,
 		       status_str);
 	}
 }

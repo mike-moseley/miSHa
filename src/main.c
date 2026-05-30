@@ -1,15 +1,15 @@
-#define _POSIX_C_SOURCE 200809L
-
 #include "shell/builtins.h"
 #include "shell/consts.h"
 #include "shell/env.h"
 #include "shell/executor.h"
 #include "shell/history.h"
 #include "shell/input.h"
+#include "shell/jobs.h"
 #include "shell/parser.h"
 #include "vendor/alloc/arena.h"
 #include "vendor/alloc/pool.h"
 #include "vendor/data-structures/slice.h"
+#include <bits/types/sig_atomic_t.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,14 +21,21 @@
 arena_t *parser_arena;
 pool_t *parser_pool;
 slice_t *input;
+static volatile pid_t exited_pids[MAX_JOBS];
+static volatile sig_atomic_t exited_count = 0;
 
 void cleanupArenas(void) { arenaDestroy(parser_arena); }
 
 void cleanupPools(void) { poolDestroy(parser_pool); }
 
 void sigchld_handler(int sig) {
+	pid_t pid;
 	(void)sig;
-	while(waitpid(-1, NULL, WNOHANG) > 0);
+
+	while((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
+		exited_pids[exited_count] = pid;
+		exited_count++;
+	}
 }
 
 int main(void) {
@@ -56,11 +63,14 @@ int main(void) {
 	initTerminal();
 	initEnv();
 	initHistory();
+	initJobs();
 
 	enableRawMode();
 	atexit(restoreTerminal);
 
 	while(1) {
+		int i;
+
 		input = createSlice(sizeof(char), 0);
 		if(readline_raw(input) == -1) break;
 
@@ -73,6 +83,17 @@ int main(void) {
 		if(builtin_code == NOT_BUILTIN) {
 			execute(cmd);
 		}
+
+		for(i = 0; i < exited_count; i++) {
+			pid_t pid = exited_pids[i];
+			job_t *job = getJobByPID(pid);
+			if (job == NULL) continue;
+			removeJob(job);
+			printf("Job %d `%s` finished\n", job->jobid, job->cmd_name);
+			exited_pids[i] = 0;
+		}
+		exited_count = 0;
+
 		arenaReset(parser_arena);
 		poolReset(parser_pool);
 		freeSlice(input, NULL);

@@ -14,7 +14,8 @@ typedef enum{
 	BUILTIN_PWD,
 	BUILTIN_EXPORT,
 	BUILTIN_UNSET,
-	BUILTIN_HISTORY
+	BUILTIN_HISTORY,
+	BUILTIN_JOBS
 } BuiltinCommmands;
 
 BuiltinCode handle_builtins(char **argv);

@@ -1,8 +1,8 @@
-#define _POSIX_C_SOURCE 200112L
 #include "shell/builtins.h"
 #include "shell/consts.h"
 #include "shell/env.h"
 #include "shell/history.h"
+#include "shell/jobs.h"
 #include "vendor/data-structures/cds_types.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +22,8 @@ BuiltinCommmands get_builtin_command(char *command) {
 		return BUILTIN_HISTORY;
 	} else if(strcmp("exit", command) == 0) {
 		return BUILTIN_EXIT;
+	} else if(strcmp("jobs", command) == 0) {
+		return BUILTIN_JOBS;
 	} else {
 		return BUILTIN_NOT_FOUND;
 	}
@@ -31,7 +33,7 @@ BuiltinCode builtin_cd(char **argv) {
 	char *home;
 	home = getEnv("HOME");
 	if(argv[1] == NULL || *argv[1] == '\0') {
-		if( home != NULL) {
+		if(home != NULL) {
 			if(chdir(home) == -1) {
 				perror("chdir to home in builtin_cd in builtins.c failed");
 				return BUILTIN_FAILED;
@@ -100,6 +102,8 @@ BuiltinCode builtin_unset(char **argv) {
 
 void builtin_history(void) { printHistory(); }
 
+void builtin_jobs(void) { printJobs(); }
+
 BuiltinCode handle_builtins(char **argv) {
 	char *command;
 	BuiltinCommmands builtin;
@@ -119,6 +123,9 @@ BuiltinCode handle_builtins(char **argv) {
 		return builtin_unset(argv);
 	case BUILTIN_HISTORY:
 		builtin_history();
+		return BUILTIN_OK;
+	case BUILTIN_JOBS:
+		builtin_jobs();
 		return BUILTIN_OK;
 	case BUILTIN_NOT_FOUND:
 		return NOT_BUILTIN;

@@ -13,6 +13,7 @@ file(GLOB_RECURSE sources
 add_executable(miSHa ${sources})
 target_include_directories(miSHa PRIVATE "${CMAKE_SOURCE_DIR}/include")
 target_compile_options(miSHa PRIVATE -Wall -Wextra -g -pedantic)
+target_compile_definitions(miSHa PRIVATE _POSIX_C_SOURCE=200809L)
 
 # Unity testing
 enable_testing()
