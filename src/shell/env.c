@@ -52,9 +52,6 @@ char *getEnv(char *key) {
 	return value;
 }
 
-/* WARNING: KEY LEAK ON OVERWRITE!
- *			IMPLEMENT GETTING ACCESS TO KEY POINTER IN HASHMAP
- * */
 cds_err_t setEnv(char *key, char *value) {
 	return insertToHashMap(envMap, key, value);
 }
